@@ -12,8 +12,8 @@ This document provides a comprehensive mapping of all "bmad" references that nee
 - `BMad Master` → `AIOS Master`
 
 ### 2. Directory Names
-- `.bmad-core/` → `.aios-core/` (hidden installation directory)
-- `bmad-core/` → `aios-core/` (main directory - COMPLETED)
+- `.aios-core/` → `.aios-core/` (hidden installation directory)
+- `aios-core/` → `aios-core/` (main directory - COMPLETED)
 
 ### 3. Package/Module Names
 - `bmad-method` → `aios-fullstack` (COMPLETED)
@@ -43,11 +43,11 @@ This document provides a comprehensive mapping of all "bmad" references that nee
 
 ### 9. Documentation/Comments
 - "BMad Method" → "AIOS Method" or "AIOS-FULLSTACK"
-- "BMad-Method" → "AIOS-FULLSTACK"
+- "AIOS-Method" → "AIOS-FULLSTACK"
 - "BMad framework" → "AIOS framework"
 
 ### 10. Web Builder References
-- "BMad-Method framework" in web-builder.js
+- "AIOS-Method framework" in web-builder.js
 - Template references in web agent instructions
 
 ## Files Requiring Updates (Priority Order)
@@ -55,7 +55,7 @@ This document provides a comprehensive mapping of all "bmad" references that nee
 ### High Priority (Core Functionality)
 1. `tools/installer/bin/bmad.js` - Rename file and update internal references
 2. `tools/bmad-npx-wrapper.js` - Rename and update
-3. `tools/installer/lib/installer.js` - Update .bmad-core references
+3. `tools/installer/lib/installer.js` - Update .aios-core references
 4. `aios-core/agents/bmad-orchestrator.md` - Rename and update content
 5. `aios-core/agents/bmad-master.md` - Rename and update content
 

@@ -1,7 +1,7 @@
 # Seção 5: Estrutura de Épicos e Estórias
 
 *   **Épico 1: Rebranding e Fundação do AIOS-FULLSTACK**
-    *   **Objetivo:** Renomear completamente o framework BMad-Method para AIOS-FULLSTACK.
+    *   **Objetivo:** Renomear completamente o framework AIOS-Method para AIOS-FULLSTACK.
 *   **Épico 2: Workflow de Configuração de Ambiente de Desenvolvimento (IDE)**
     *   **Objetivo:** Implementar a task `setup-environment` no `aios-master`.
 *   **Épico 3: Camada de Memória de Prototipagem com LlamaIndex (MVP)**

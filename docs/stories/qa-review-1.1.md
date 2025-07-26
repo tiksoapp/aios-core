@@ -15,7 +15,7 @@
    - Root package.json: ✓ Updated
    - Installer package.json: ✓ Updated (bin entries still use bmad for compatibility)
 
-2. **AC2: Main directory "bmad-core" renamed to "aios-core"**
+2. **AC2: Main directory "aios-core" renamed to "aios-core"**
    - Status: PASS
    - Directory renamed using git mv: ✓
    - Git history preserved: ✓
@@ -48,14 +48,14 @@
 ### 🔍 Findings and Observations
 
 #### High Priority
-1. **Remaining "bmad-core" references in installer.js**
+1. **Remaining "aios-core" references in installer.js**
    - Lines 841, 896, 1563, 1720, 1724, 1734, 1735
-   - These refer to `.bmad-core` (hidden directory) not the main directory
+   - These refer to `.aios-core` (hidden directory) not the main directory
    - **Impact:** May cause confusion but doesn't break functionality
 
 #### Medium Priority
 2. **Build artifacts contain old references**
-   - Files in `dist/` directory still reference bmad-core
+   - Files in `dist/` directory still reference aios-core
    - **Recommendation:** Run build command to regenerate artifacts
 
 3. **Expansion pack references**
@@ -64,7 +64,7 @@
    - **Impact:** Inconsistent branding in expansion packs
 
 4. **Documentation references**
-   - Some architecture docs still mention bmad-core directory structure
+   - Some architecture docs still mention aios-core directory structure
    - **Impact:** May confuse new developers
 
 #### Low Priority
@@ -83,7 +83,7 @@
 
 1. **Immediate Actions:**
    - Run `npm run build` to regenerate dist files
-   - Update hidden directory references from `.bmad-core` to `.aios-core`
+   - Update hidden directory references from `.aios-core` to `.aios-core`
 
 2. **Follow-up Tasks:**
    - Create story for updating expansion pack references

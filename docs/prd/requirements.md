@@ -2,7 +2,7 @@
 
 **Requisitos Funcionais (FR):**
 
-1. **FR1:** O sistema deve ser completamente renomeado de "BMad-Method" para "AIOS-FULLSTACK", incluindo todos os artefatos, arquivos e referências internas.
+1. **FR1:** O sistema deve ser completamente renomeado de "AIOS-Method" para "AIOS-FULLSTACK", incluindo todos os artefatos, arquivos e referências internas.
 2. **FR2:** O agente `aios-master` deve possuir um workflow (`setup-environment`) capaz de configurar o ambiente de desenvolvimento para Windsurf, Cursor e Claude Code, criando e atualizando os arquivos de regras.
 3. **FR3 (MVP):** O sistema deve implementar uma camada de memória para prototipagem utilizando `LlamaIndex` com `SimpleVectorStore`. A persistência inicial será em sistema de arquivos local para acelerar o desenvolvimento e os testes dos agentes.
 4. **FR4:** Deve existir um agente `aios-developer` (Meta-Agente) capaz de criar novos componentes do framework (agentes, tasks, workflows) e atualizar automaticamente os manifestos do sistema para manter a integridade.
@@ -21,6 +21,6 @@
 
 **Requisitos de Compatibilidade (CR):**
 
-1. **CR1:** A nova arquitetura deve ser implementada como uma evolução do codebase do `BMad-Method`, mantendo a compatibilidade com seus conceitos fundamentais.
+1. **CR1:** A nova arquitetura deve ser implementada como uma evolução do codebase do `AIOS-Method`, mantendo a compatibilidade com seus conceitos fundamentais.
 2. **CR2:** As migrações de banco de dados no Supabase devem ser reversíveis.
 3. **CR3:** A estratégia de rollback (tags Git, feature flags) deve garantir que o sistema possa ser revertido para um estado estável.

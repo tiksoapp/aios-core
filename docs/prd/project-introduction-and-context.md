@@ -3,11 +3,11 @@
 **Visão Geral do Projeto Existente:**
 
 *   **Fonte da Análise:** A análise se baseia em nossa colaboração contínua, na "Pesquisa Aprofundada: Ecossistema e Arquitetura de Dados para Agentes em LangGraph" e no "Documento de Arquitetura Técnica: AIOS com LangGraph Nativo v2.0".
-*   **Estado Atual do Projeto:** O projeto base é o framework `BMad-Method`, uma metodologia de desenvolvimento ágil orientada por agentes de IA. Ele possui uma estrutura modular com agentes especializados, templates e workflows definidos.
+*   **Estado Atual do Projeto:** O projeto base é o framework `AIOS-Method`, uma metodologia de desenvolvimento ágil orientada por agentes de IA. Ele possui uma estrutura modular com agentes especializados, templates e workflows definidos.
 
 **Análise da Documentação Disponível:**
 
-*   A documentação existente é a própria base de código do BMad-Method e os artefatos que criamos:
+*   A documentação existente é a própria base de código do AIOS-Method e os artefatos que criamos:
     - [x]     Documento de Arquitetura Técnica (AIOS com LangGraph Nativo v2.0)
     - [x]     Pesquisa de Ecossistema LangGraph
     - [x]     Padrões de Código e Estrutura de Diretórios (definidos na arquitetura)
@@ -20,7 +20,7 @@
     - [x]     Modificação de Funcionalidade Principal
     - [x]     Integração com Novos Sistemas (Supabase, Hetzner)
     - [x]     Atualização da Pilha de Tecnologia (mudança para LangGraph nativo)
-*   **Descrição do Aprimoramento:** Evoluir o `BMad-Method` para o **AIOS-FULLSTACK**, um sistema de orquestração de agentes de IA nativo em LangGraph, com uma camada de memória persistente e compartilhada via Supabase, e capacidades de autodesenvolvimento.
+*   **Descrição do Aprimoramento:** Evoluir o `AIOS-Method` para o **AIOS-FULLSTACK**, um sistema de orquestração de agentes de IA nativo em LangGraph, com uma camada de memória persistente e compartilhada via Supabase, e capacidades de autodesenvolvimento.
 *   **Avaliação de Impacto:**
     - [x]     **Impacto Maior (alterações arquitetônicas necessárias):** A mudança para LangGraph como núcleo e a introdução da memória persistente representam uma re-arquitetura fundamental do sistema.
 
