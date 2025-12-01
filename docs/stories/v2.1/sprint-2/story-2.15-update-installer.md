@@ -2,13 +2,13 @@
 
 **ID:** 2.15 | **Épico:** [EPIC-S2](../../../epics/epic-s2-modular-architecture.md)
 **Sprint:** 2 | **Points:** 3 | **Priority:** 🟠 High | **Created:** 2025-01-19
-**Updated:** 2025-11-30
-**Status:** ⏸️ Blocked
+**Updated:** 2025-12-01
+**Status:** 🟢 Ready for Dev
 
 **Reference:** [ADR-002 Migration Map](../../architecture/decisions/ADR-002-migration-map.md)
 **Quality Gate:** [2.15-update-installer.yml](../../qa/gates/2.15-update-installer.yml)
 
-**Blocked by:** Story 2.14 (Migration Script) must be tested first
+**Unblocked:** 2025-12-01 - Story 2.14 (Migration Script) completed and pushed to main
 
 ---
 
@@ -266,6 +266,7 @@ _To be filled by @qa agent_
 |------|---------|-------------|--------|
 | 2025-01-19 | 0.1 | Story created (bundled in 2.10-2.16) | River |
 | 2025-11-30 | 1.0 | Sharded to individual file, full enrichment | Pax |
+| 2025-12-01 | 1.1 | Unblocked - Story 2.14 complete, Ready for Dev | Pax |
 
 ---
 
