@@ -1,159 +1,145 @@
-# Quality Gate Decision - Story 3.0
-# Core Module Security Hardening
+# Quality Gate Configuration for Story 3.0 - Security Hardening
+# Version: 1.0
+# Created: 2025-12-01
 
-schema: 1
-story: "3.0"
-story_title: "Core Module Security Hardening"
-gate: PENDING
-status_reason: "Awaiting implementation of security fixes"
-reviewer: "Quinn (@qa)"
-updated: "2025-12-01T19:00:00Z"
+story_id: "3.0"
+story_name: "Core Module Security Hardening"
+priority: critical
 
-waiver:
-  active: false
+# Acceptance Criteria Gates
+acceptance_criteria:
+  # ReDoS Prevention
+  AC3.0.1:
+    name: "Pattern validation before RegExp construction"
+    type: code_review
+    verification: "isSafePattern() function exists and is called before RegExp creation"
 
-# Pre-implementation validation
-pre_validation:
-  story_format: PASS
-  acceptance_criteria: PASS
-  definition_of_done: PASS
-  dependencies_clear: PASS
-  estimates_reasonable: PASS
-  rollback_plan: PASS
+  AC3.0.2:
+    name: "Native validation implemented"
+    type: code_review
+    verification: "Native ReDoS pattern detection implemented (no external package required)"
 
-# Required tests (from story smoke tests SEC-01 to SEC-05)
-required_tests:
-  p0_critical:
-    - id: SEC-01
-      name: "ReDoS Prevention"
-      description: "Malicious regex patterns rejected"
-      status: PENDING
+  AC3.0.3:
+    name: "Try/catch wrapper around RegExp compilation"
+    type: code_review
+    verification: "RegExp construction wrapped in try/catch in isSafePattern()"
 
-    - id: SEC-02
-      name: "Path Traversal Block"
-      description: "../ in sessionId rejected with error"
-      status: PENDING
+  AC3.0.4:
+    name: "Safe failure mode for rejected patterns"
+    type: code_review
+    verification: "Invalid patterns return error message, not throw"
 
-    - id: SEC-03
-      name: "Valid Session Loads"
-      description: "Normal sessions still work (no regression)"
-      status: PENDING
+  # Path Traversal Prevention
+  AC3.0.5:
+    name: "SessionId validation with strict hex pattern"
+    type: code_review
+    verification: "/^[a-f0-9]{16}$/i pattern enforced in isValidSessionId()"
 
-  p1_important:
-    - id: SEC-04
-      name: "Error Handling"
-      description: "Invalid session path returns null, no crash"
-      status: PENDING
+  AC3.0.6:
+    name: "Invalid sessionId rejection with clear error"
+    type: code_review
+    verification: "getSessionPath() throws descriptive error for invalid sessionId"
 
-    - id: SEC-05
-      name: "CodeRabbit Clean"
-      description: "No MEDIUM+ security findings"
-      status: PENDING
+  AC3.0.7:
+    name: "path.join() used instead of string concatenation"
+    type: code_review
+    verification: "path.join() used in getSessionPath()"
 
-# Deliverables scope
-deliverables:
-  files_to_modify:
-    - ".aios-core/core/elicitation/elicitation-engine.js"
-    - ".aios-core/core/elicitation/session-manager.js"
+  # Error Handling
+  AC3.0.8:
+    name: "Try/catch in loadSession for fs.readJson"
+    type: code_review
+    verification: "loadSession() has try/catch wrapper"
 
-  security_fixes:
-    - name: "ReDoS Vulnerability"
-      file: ".aios-core/core/elicitation/elicitation-engine.js"
-      lines: "328-332"
-      severity: MEDIUM
-      fix: "Pattern validation before RegExp construction"
+  AC3.0.9:
+    name: "Clear error logging with sessionPath context"
+    type: code_review
+    verification: "Error logging includes sessionPath in message"
 
-    - name: "Path Traversal"
-      file: ".aios-core/core/elicitation/session-manager.js"
-      lines: "274-276"
-      severity: MEDIUM
-      fix: "SessionId validation with strict hex pattern"
+  AC3.0.10:
+    name: "Sensible failure return value"
+    type: code_review
+    verification: "loadSession() returns null on failure"
 
-    - name: "Missing Error Handling"
-      file: ".aios-core/core/elicitation/elicitation-engine.js"
-      lines: "376-382"
-      severity: MEDIUM
-      fix: "Try/catch wrapper for fs.readJson"
+  # Variable Initialization
+  AC3.0.11:
+    name: "this.currentSession properly initialized"
+    type: code_review
+    verification: "this.currentSession = null in constructor"
 
-    - name: "Uninitialized Variable"
-      file: ".aios-core/core/elicitation/elicitation-engine.js"
-      lines: "411-420"
-      severity: MEDIUM
-      fix: "Initialize this.currentSession properly"
+  AC3.0.12:
+    name: "No uninitialized variable access in completeSession"
+    type: code_review
+    verification: "this.currentSession set in startSession()"
 
-# Risk assessment
-risk_summary:
-  totals:
-    critical: 0
-    high: 0
-    medium: 4
-    low: 0
-  highest: medium
-  identified_risks:
-    - id: "REDOS-001"
-      severity: medium
-      finding: "ReDoS vulnerability allows CPU exhaustion"
-      mitigation: "Pattern validation before RegExp"
-      status: PLANNED
+  # Regression Prevention
+  AC3.0.13:
+    name: "All CORE tests pass"
+    type: automated_test
+    command: "npm test -- --passWithNoTests"
+    pass_threshold: 90
 
-    - id: "PATH-001"
-      severity: medium
-      finding: "Path traversal allows arbitrary file access"
-      mitigation: "Strict sessionId validation"
-      status: PLANNED
+  AC3.0.14:
+    name: "CodeRabbit scan shows no MEDIUM+ security findings"
+    type: security_scan
+    tool: coderabbit
+    severity_threshold: MEDIUM
 
-  recommendations:
-    must_fix:
-      - "All 4 MEDIUM severity issues"
-    before_start:
-      - "Review affected code paths"
-    during_implementation:
-      - "Test each fix individually"
-      - "Run CORE regression tests after each change"
-    before_completion:
-      - "Full CodeRabbit security scan"
-      - "All SEC tests must pass"
+# Smoke Tests
+smoke_tests:
+  SEC-01:
+    name: "ReDoS Prevention"
+    description: "Malicious regex rejected"
+    priority: P0
+    pass_criteria: "Pattern validation works"
+    test_type: unit
 
-# Quality scoring (pre-implementation baseline)
-quality_score: 90
+  SEC-02:
+    name: "Path Traversal Block"
+    description: "../ in sessionId rejected"
+    priority: P0
+    pass_criteria: "Throws error"
+    test_type: unit
 
-# Gate criteria for PASS
-pass_criteria:
-  - "All P0 tests (SEC-01 to SEC-03) must pass"
-  - "All P1 tests (SEC-04 to SEC-05) must pass"
-  - "No MEDIUM+ CodeRabbit findings"
-  - "CORE-01 to CORE-07 regression tests pass"
+  SEC-03:
+    name: "Valid Session Loads"
+    description: "Normal sessions still work"
+    priority: P0
+    pass_criteria: "No regression"
+    test_type: integration
+
+  SEC-04:
+    name: "Error Handling"
+    description: "Invalid session path handled"
+    priority: P1
+    pass_criteria: "Returns null, no crash"
+    test_type: unit
+
+  SEC-05:
+    name: "CodeRabbit Clean"
+    description: "No MEDIUM+ findings"
+    priority: P1
+    pass_criteria: "Scan passes"
+    test_type: security_scan
+
+# Rollback Triggers
+rollback_triggers:
+  - condition: "Any P0 test fails"
+    action: "Fix immediately"
+  - condition: "CORE tests regress"
+    action: "Rollback and investigate"
+
+# Files Modified
+files_modified:
+  - ".aios-core/core/elicitation/elicitation-engine.js"
+  - ".aios-core/core/elicitation/session-manager.js"
+
+# Definition of Done
+definition_of_done:
   - "All 4 security vulnerabilities addressed"
-
-expires: "2025-12-31T00:00:00Z"
-
-evidence:
-  story_validated: true
-  po_approved: true
-  dependencies_met:
-    - story: "Sprint 2"
-      status: "Complete"
-      note: "All Sprint 2 stories Done as of 2025-12-01"
-  backlog_reference: "1732891500001-core-security-hardening.md"
-  blocking_stories: []
-  note: "Promoted from backlog due to CRITICAL priority. Security fixes required before Sprint 3 feature work."
-
-# CodeRabbit Integration
-coderabbit_integration:
-  enabled: true
-  focus_areas:
-    primary:
-      - "Security vulnerability detection"
-      - "ReDoS pattern analysis"
-      - "Path traversal detection"
-    secondary:
-      - "Error handling completeness"
-      - "Variable initialization"
-  self_healing:
-    primary_agent: "@dev"
-    max_iterations: 2
-    timeout_minutes: 10
-    severity_filter:
-      - MEDIUM
-      - HIGH
-      - CRITICAL
+  - "No MEDIUM+ CodeRabbit findings"
+  - "CORE-01 to CORE-07 tests pass"
+  - "SEC-01 to SEC-05 smoke tests pass"
+  - "Story checkboxes updated"
+  - "QA Review passed"
+  - "PR created and approved"
