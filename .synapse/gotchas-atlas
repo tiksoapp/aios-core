@@ -1,0 +1,27 @@
+# SYNAPSE Gotchas Domain — ATLAS-1 Sprint Retro Learnings
+# Source: Epic ATLAS-1 retrospective (2026-02-23)
+# Triggered by L6 keywords: pm2, sed, nextauth, ssh, vultr, deploy, production
+
+# --- CRITICAL ---
+
+GOTCHA_RULE_0=[CRITICAL] PM2 user mismatch: ALWAYS check which USER runs PM2 before acting. Run `systemctl list-units | grep pm2` and `lsof -i :PORT` first. Never run `pm2 start` as root if the app runs as another user — causes EADDRINUSE conflicts.
+
+GOTCHA_RULE_1=[CRITICAL] Verify git remote exists before assuming push works. Servers with direct deploys may have local-only repos with no remote configured. Run `git remote -v` before any push attempt.
+
+# --- WARNING ---
+
+GOTCHA_RULE_2=[WARNING] Never use sed -i with global regex on TypeScript files. TS syntax (generics, type assertions, union types) breaks regex patterns. Use Python with `re` module or jscodeshift for TS/TSX transformations.
+
+GOTCHA_RULE_3=[WARNING] Background agents do not survive SSH session kill (broken pipe). For critical work on remote servers, prefer foreground execution. Consider tmux/screen for persistence. On session resume, always verify filesystem state before assuming agent completed.
+
+GOTCHA_RULE_4=[WARNING] NextAuth v5 beta.30 handlers are typed as `(req: NextRequest) => Promise<Response>` (1 argument only). Do NOT pass context/params as second argument (TS2554). Use `request.nextUrl.pathname` for route detection instead.
+
+GOTCHA_RULE_5=[WARNING] After any project rename, run `grep -r 'old-name' --include='*.sh' --include='*.md' --include='*.yml' --include='*.txt'` to catch leftover references in scripts, docs, and CI/CD configs. Container names, paths, and service names are commonly missed.
+
+# --- INFO ---
+
+GOTCHA_RULE_6=[INFO] Parallel agents don't uniformly update story checkboxes. Include explicit instruction in agent prompts: "Mark ALL checkboxes (ACs AND tasks) in the story file when done." PO review should always verify tasks vs ACs consistency.
+
+GOTCHA_RULE_7=[INFO] .env backup files tracked in git: Before pushing any repo to GitHub, scan for secrets with `git ls-files | grep -iE '\.env|credential|secret|\.pem|\.key'`. Use git-filter-repo to purge from history if found. Private repos still expose secrets to anyone with access.
+
+GOTCHA_RULE_8=[INFO] When splitting monolithic files, accept pragmatic cohesion over arbitrary line limits. A 1200-line file with 6 highly cohesive functions is better than 6 files with broken context. Document as tech debt with a growth trigger (e.g., "split if any function exceeds 200 lines").

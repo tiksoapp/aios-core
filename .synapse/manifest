@@ -54,3 +54,7 @@ WORKFLOW_EPIC_CREATE_STATE=active
 WORKFLOW_EPIC_CREATE_WORKFLOW_TRIGGER=epic_creation
 WORKFLOW_ARCH_REVIEW_STATE=active
 WORKFLOW_ARCH_REVIEW_WORKFLOW_TRIGGER=architecture_review
+
+# Layer 6: Keyword-triggered domains (gotchas, learnings)
+GOTCHAS_ATLAS_STATE=active
+GOTCHAS_ATLAS_RECALL=pm2,sed,nextauth,ssh,vultr,deploy,production,push,remote,filter-repo,secrets,env,background agent,broken pipe,rename,monolith,split,modulariz,story checkbox
