@@ -73,3 +73,26 @@ Resposta esperada ao ativar atalho:
 1. Confirmar agente ativado
 2. Mostrar 3-6 comandos principais (`*help`, etc.)
 3. Seguir na persona do agente
+
+## Cursor Cloud specific instructions
+
+This is a **Node.js CLI framework** (no web server, no database). The only required runtime is Node.js (>=18) + npm (>=9).
+
+### Quick reference
+
+| Task | Command |
+|------|---------|
+| Install deps | `npm ci` |
+| Lint | `npm run lint` |
+| Typecheck | `npm run typecheck` |
+| Tests | `npm test` |
+| CLI help | `node bin/aios.js --help` |
+| System info | `node bin/aios.js info` |
+| Diagnostics | `node bin/aios.js doctor` |
+| Graph dashboard | `node bin/aios-graph.js --deps` |
+
+### Known caveats
+
+- **terminal-spawner tests fail in Docker**: 9 tests in `tests/core/orchestration/terminal-spawner.test.js` fail because the environment detection correctly identifies `DOCKER` but the tests expect SSH/VSCODE/NATIVE_TERMINAL. This is expected in any containerized environment and not a code bug.
+- **Husky git hooks** are installed via `prepare` script. The `pre-commit` hook runs `framework-guard.js` and `ensure-manifest.js`. Use `--no-verify` to bypass if needed during development.
+- **lint-staged** runs ESLint + Prettier on JS/TS files and Prettier + semantic-lint on Markdown files. Agent markdown changes also trigger `npm run sync:ide`.
