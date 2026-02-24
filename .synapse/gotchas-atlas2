@@ -1,0 +1,31 @@
+# SYNAPSE Gotchas Domain — ATLAS-2 Sprint Retro Learnings
+# Source: Epic ATLAS-2 retrospective (2026-02-24)
+# Triggered by L6 keywords: antiban, evolution, whatsapp, pulse, watch, ink, chain, presence, opt-out, warmup, rate-limit, statusprocessor
+
+# --- CRITICAL ---
+
+GOTCHA_RULE_0=[CRITICAL] Evolution API webhooks (status updates) do NOT carry HTTP status codes. A 429 rate-limit error occurs at the SEND point (channelService.sendMessage), not in the webhook handler (StatusProcessor). Always detect 429 in the catch block of the send call, never in the webhook processor.
+
+GOTCHA_RULE_1=[CRITICAL] Antiban system has DUAL PATH: sendText() goes DIRECT to Evolution API (no antiban), queueText() goes through BullMQ → AntiBan pipeline. Manual inbox sends bypass antiban entirely. Always contabilize manual sends in rate counters even if not blocking them.
+
+GOTCHA_RULE_2=[CRITICAL] BehaviorSimulator calculates delays but callbacks must be WIRED to real WhatsApp presence API. If callbacks are no-ops, the delay is consumed (thread sleeps) but WhatsApp never receives "composing..." indicator. Always verify callbacks are connected, not just that delays are calculated.
+
+# --- WARNING ---
+
+GOTCHA_RULE_3=[WARNING] Evolution API v2.3.7 Issue #2298: Accounts get restricted after 1-2 days even with only 2 messages sent. The problem may be at the protocol/Baileys level, not just messaging behavior. Monitor channel health daily and have a warm-up strategy ready.
+
+GOTCHA_RULE_4=[WARNING] Story ACs must specify WHERE in the code the change goes, not just WHAT the change does. "Add 429 detection in StatusProcessor" vs "Add 429 detection in message-queue.ts catch block" — the second saves the architect from having to correct misplacements. @sm should consult @architect for placement guidance in complex stories.
+
+GOTCHA_RULE_5=[WARNING] Prisma schema already has ConsentRecord model with @@unique([contactId, purpose]). Before adding ad-hoc boolean/datetime fields for consent (like optedOutAt), check if ConsentRecord covers the use case. Use dual-write (fast field + audit record) for LGPD compliance.
+
+GOTCHA_RULE_6=[WARNING] LLM personalization (personalizeMessage) can rewrite or omit appended text. Opt-out suffixes, legal disclaimers, and any mandatory text must be concatenated AFTER LLM processing, never passed as LLM input.
+
+# --- INFO ---
+
+GOTCHA_RULE_7=[INFO] Evolution API sendMessage accepts { options: { delay: number, presence: "composing" } } in the payload, but if BehaviorSimulator already handles delays via sleep + callbacks, using both causes DOUBLE delay. Choose one path: either options in payload OR simulator callbacks, never both.
+
+GOTCHA_RULE_8=[INFO] Warmup and health cron methods (advanceAllChannels, resetDailyCounters) may exist as implemented methods but with NO cron invoking them. Always verify in instrumentation.ts that crons are registered AND included in SIGTERM shutdown handler.
+
+GOTCHA_RULE_9=[INFO] When @architect validates stories with RESSALVAS, the @dev prompt MUST include the corrected DAs (architectural decisions). Copy-pasting the original story ACs without architect corrections leads to implementing the wrong thing. The architect validation is the source of truth, not the original story text.
+
+GOTCHA_RULE_10=[INFO] Full AIOS ritual (sm→architect→dev→qa→devops) adds ~30min overhead per story but catches critical misplacements early. In ATLAS-2, the architect caught 3 critical AC misplacements in ANTIBAN-FIX that would have required rework. The ritual pays for itself on stories with 4+ ACs.
