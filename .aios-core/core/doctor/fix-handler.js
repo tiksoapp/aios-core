@@ -10,6 +10,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 const { EXPECTED_RULES } = require('./checks/rules-files');
 const { EXPECTED_AGENTS } = require('./checks/agent-memory');
@@ -130,6 +131,36 @@ const FIX_MAP = {
     },
     async apply() {
       return 'CLAUDE.md regeneration requires npx aios-core install --force';
+    },
+  },
+
+  'entity-registry': {
+    describe() {
+      return 'Regenerate entity-registry.yaml via populate-entity-registry.js';
+    },
+    async apply(result, { frameworkRoot }) {
+      const scriptPath = path.join(
+        frameworkRoot,
+        '.aios-core',
+        'development',
+        'scripts',
+        'populate-entity-registry.js',
+      );
+
+      if (!fs.existsSync(scriptPath)) {
+        return 'populate-entity-registry.js not found — run npx aios-core install --force';
+      }
+
+      try {
+        execSync(`node "${scriptPath}"`, {
+          cwd: frameworkRoot,
+          timeout: 30000,
+          stdio: 'pipe',
+        });
+        return 'entity-registry.yaml regenerated';
+      } catch (error) {
+        return `entity-registry fix failed: ${error.message}`;
+      }
     },
   },
 

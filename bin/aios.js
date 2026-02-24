@@ -66,6 +66,7 @@ USAGE:
   npx aios-core@latest validate     # Validate installation integrity
   npx aios-core@latest info         # Show system info
   npx aios-core@latest doctor       # Run diagnostics
+  npx aios-core@latest sync         # Sync entity registry
   npx aios-core@latest --version    # Show version
   npx aios-core@latest --version -d # Show detailed version info
   npx aios-core@latest --help       # Show this help
@@ -348,6 +349,103 @@ async function runUpdate() {
       console.error(error.stack);
     }
     process.exit(1);
+  }
+}
+
+// Helper: Sync entity registry
+async function runSync(options = {}) {
+  const { full = false, heal = false } = options;
+  const frameworkRoot = path.join(__dirname, '..');
+  const scriptPath = path.join(frameworkRoot, '.aios-core', 'development', 'scripts', 'populate-entity-registry.js');
+  const registryPath = path.join(frameworkRoot, '.aios-core', 'data', 'entity-registry.yaml');
+
+  if (heal) {
+    try {
+      const { RegistryHealer } = require(path.join(frameworkRoot, '.aios-core', 'core', 'ids', 'registry-healer'));
+      const healer = new RegistryHealer();
+      console.log('🔧 Running registry healer...');
+      const report = healer.runHealthCheck();
+      const issues = report.issues || [];
+      const healable = issues.filter((i) => i.autoHealable);
+
+      if (healable.length === 0) {
+        console.log('✅ No healable issues found');
+        return;
+      }
+
+      console.log(`Found ${healable.length} healable issues, applying fixes...`);
+      const result = healer.heal(issues, { autoOnly: true });
+      const healedCount = Array.isArray(result.healed) ? result.healed.length : 0;
+      const errorCount = Array.isArray(result.errors) ? result.errors.length : 0;
+      console.log(`✅ Healed ${healedCount} issues${errorCount > 0 ? `, ${errorCount} errors` : ''}`);
+    } catch (error) {
+      console.error(`❌ Healer error: ${error.message}`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (full || !fs.existsSync(registryPath)) {
+    if (!fs.existsSync(scriptPath)) {
+      console.error('❌ populate-entity-registry.js not found');
+      process.exit(1);
+    }
+
+    console.log('🔄 Regenerating entity-registry.yaml (full)...');
+    try {
+      execSync(`node "${scriptPath}"`, {
+        cwd: frameworkRoot,
+        timeout: 30000,
+        stdio: 'inherit',
+      });
+      console.log('✅ Entity registry regenerated');
+    } catch (error) {
+      console.error(`❌ Sync failed: ${error.message}`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  // Incremental via RegistryUpdater
+  try {
+    const { RegistryUpdater } = require(path.join(frameworkRoot, '.aios-core', 'core', 'ids', 'registry-updater'));
+    const updater = new RegistryUpdater();
+
+    let changedFiles = [];
+    try {
+      const output = execSync(
+        'git diff --name-only --diff-filter=ACMR HEAD -- ".aios-core/"',
+        { cwd: frameworkRoot, encoding: 'utf8', timeout: 10000 },
+      ).trim();
+      changedFiles = output ? output.split('\n').filter(Boolean) : [];
+    } catch {
+      console.log('⚠️  Cannot detect changes, running full sync...');
+      execSync(`node "${scriptPath}"`, {
+        cwd: frameworkRoot,
+        timeout: 30000,
+        stdio: 'inherit',
+      });
+      console.log('✅ Entity registry regenerated (full fallback)');
+      return;
+    }
+
+    if (changedFiles.length === 0) {
+      console.log('✅ Entity registry is up to date (no changes detected)');
+      return;
+    }
+
+    console.log(`🔄 Incremental sync: ${changedFiles.length} changed files...`);
+    updater.processChanges(changedFiles);
+    console.log('✅ Entity registry updated');
+  } catch (error) {
+    console.error(`❌ Incremental sync failed: ${error.message}`);
+    console.log('Falling back to full sync...');
+    execSync(`node "${scriptPath}"`, {
+      cwd: frameworkRoot,
+      timeout: 30000,
+      stdio: 'inherit',
+    });
+    console.log('✅ Entity registry regenerated (full fallback)');
   }
 }
 
@@ -881,6 +979,40 @@ async function main() {
     case 'info':
       showInfo();
       break;
+
+    case 'sync': {
+      // Sync entity registry
+      const syncArgs = args.slice(1);
+      if (syncArgs.includes('--help') || syncArgs.includes('-h')) {
+        console.log(`
+Usage: aios sync [options]
+
+Synchronize the entity registry (.aios-core/data/entity-registry.yaml).
+
+Options:
+  --full     Force full rebuild (rescan all directories)
+  --heal     Run integrity healer (fix checksums, orphaned refs)
+  -h, --help Show this help message
+
+Modes:
+  (default)  Incremental — only process files changed since last update
+  --full     Full rebuild — rescan all 14 categories from scratch
+  --heal     Integrity — fix data issues in existing registry entries
+
+Examples:
+  aios sync              # Incremental sync
+  aios sync --full       # Full rebuild
+  aios sync --heal       # Fix integrity issues
+`);
+        break;
+      }
+      const syncOptions = {
+        full: syncArgs.includes('--full'),
+        heal: syncArgs.includes('--heal'),
+      };
+      await runSync(syncOptions);
+      break;
+    }
 
     case 'doctor': {
       // Run health check with flag support

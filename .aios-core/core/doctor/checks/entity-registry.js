@@ -22,7 +22,7 @@ async function run(context) {
       check: name,
       status: 'FAIL',
       message: 'entity-registry.yaml not found',
-      fixCommand: 'npx aios-core install --force',
+      fixCommand: 'node bin/aios.js sync --full',
     };
   }
 
@@ -38,7 +38,7 @@ async function run(context) {
       check: name,
       status: 'WARN',
       message: `entity-registry.yaml is ${ageHours}h old (threshold: 48h), ~${lineCount} lines`,
-      fixCommand: 'npx aios-core install --force',
+      fixCommand: 'node bin/aios.js sync --full',
     };
   }
 

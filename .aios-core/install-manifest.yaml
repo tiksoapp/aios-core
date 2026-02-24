@@ -8,7 +8,7 @@
 # - File types for categorization
 #
 version: 4.4.0
-generated_at: "2026-02-24T15:27:48.248Z"
+generated_at: "2026-02-24T15:35:20.574Z"
 generator: scripts/generate-install-manifest.js
 file_count: 1084
 files:
@@ -305,9 +305,9 @@ files:
     type: core
     size: 1208
   - path: core/doctor/checks/entity-registry.js
-    hash: sha256:5e94ced04a6d835b45b18a574108f908fdee43fe973dbd8fa5aea3675bb927e1
+    hash: sha256:b4dfe94784b192e1d03fbaff6d733002813131256159b8e5256786c66c128cfc
     type: core
-    size: 1333
+    size: 1331
   - path: core/doctor/checks/git-hooks.js
     hash: sha256:0fbf921cee36695716d8762a4b675403d788ffdb69ae41c0e2a398d516d2530f
     type: core
@@ -349,9 +349,9 @@ files:
     type: core
     size: 1584
   - path: core/doctor/fix-handler.js
-    hash: sha256:51cac57859a662d56a01d2137e789a36d36ff4a52d4bfe20ab45da8525c125be
+    hash: sha256:83b0a272bae1d0601470ac62235256e20f80be22fa5d7ccf040f960851b007e0
     type: core
-    size: 4535
+    size: 5376
   - path: core/doctor/formatters/json.js
     hash: sha256:a2f03e7aec43d1c9c1a0d5a9c35bbac75da2e727e397c4c8407c5c9a4692841d
     type: core
@@ -1221,9 +1221,9 @@ files:
     type: data
     size: 9575
   - path: data/entity-registry.yaml
-    hash: sha256:1a3ebc7fb0c09631e18192e376903db69ef9e40ffc2a661ca87a100e6996051f
+    hash: sha256:26d56f17cf613dd17956f4b3ab8345d3339e8e02fa235fb2c7690c028f7b2386
     type: data
-    size: 517912
+    size: 519735
   - path: data/learned-patterns.yaml
     hash: sha256:24ac0b160615583a0ff783d3da8af80b7f94191575d6db2054ec8e10a3f945dc
     type: data
