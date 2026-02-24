@@ -96,6 +96,20 @@
 - DO NOT mock `populate-entity-registry.js` in tests - functions work on any filesystem path; just use `os.tmpdir()` temp dirs
 - `jest.mock()` path hoisting: cannot use `path.resolve()` in mock path argument because `jest.mock()` is hoisted before `const path = require('path')`
 
+### Tikso Vultr Server Patterns
+- PM2 process name: `tikso-web` (not `tikso`)
+- PM2 runs as user `tikso` via systemd: `su - tikso -c 'pm2 ...'`
+- Never use sed/heredoc for TypeScript files on server -- use Python scripts via SCP
+- `ChannelService` has `sendTyping(channelId, phone, durationMs)` but NO `sendPresence()` at service level
+- `EvolutionAPI` has `sendPresence(instanceName, phone, presence)` -- need instanceName lookup from channel
+- `EvolutionApiError` class exported from `evolution-api.ts` with `.status` property for HTTP status codes
+- Vitest `vi.resetModules()` needed to reset module-level state (e.g., `lastAdvanceDate`) between tests
+- Vitest cron tests: use `vi.useFakeTimers()` + `vi.setSystemTime()` + `vi.advanceTimersByTimeAsync()`
+- Build command: `cd /home/tikso/tikso && npx next build`
+- Test command: `cd /home/tikso/tikso && npx vitest run <path>`
+- Antiban architecture: 10 files, 6-layer pipeline (Health->RateLimit->Content->Schedule->Behavior->Send)
+- All antiban singletons are module-level exports (healthMonitor, rateLimiter, warmupService, etc.)
+
 ## Gotchas
 - Double `loadUserProfile()` call caused test failures when `mockReturnValueOnce` was used for resolveConfig
 - `console.warn` with template literal is one argument, not two -- match with `stringContaining()` only
