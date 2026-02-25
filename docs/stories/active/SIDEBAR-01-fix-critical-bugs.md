@@ -250,4 +250,87 @@ _A ser preenchido pelo agente de desenvolvimento_
 
 ## QA Results
 
-_A ser preenchido pelo agente de QA apos implementacao_
+### Re-Review Date: 2026-02-25
+
+### Reviewed By: Quinn (Test Architect)
+
+### Review Type: RE-REVIEW (apos fixes aplicados sobre issues da review inicial)
+
+### Code Quality Assessment
+
+Todas as tres correcoes solicitadas na review anterior foram implementadas corretamente. O codigo segue o padrao do projeto (uso de `requireOrgAccess`, `createTenantClient`, `memberHasPermission`, spread imutavel no React state) e nao apresenta regressoes nos handlers existentes.
+
+### Fix Verification (3 issues da review anterior)
+
+**[FIX-1] [CRITICAL] AC2 - Autorizacao no DELETE: CORRIGIDO**
+
+- `notes-route.ts` L129: select agora inclui `authorId` -- `select: { id: true, organizationId: true, authorId: true }`
+- `notes-route.ts` L143: verifica autoria -- `const isAuthor = session.user?.id === note.authorId`
+- `notes-route.ts` L144: verifica role admin -- `const isAdmin = member.role === "ADMIN"`
+- `notes-route.ts` L145-150: retorna 403 se nenhum dos dois -- `if (!isAuthor && !isAdmin) { return NextResponse.json({ success: false, error: "Nao autorizado a excluir esta nota" }, { status: 403 }) }`
+- `notes-route.ts` L140: `requireOrgAccess` agora retorna `{ session, member }` -- ambos sao usados para as verificacoes
+
+**[FIX-2] [MEDIUM] AC3 - Mobile `onContactUpdate` prop: CORRIGIDO**
+
+- `inbox-layout.tsx` L1060: `ContactPanel` no layout mobile agora recebe `onContactUpdate={(updates) => setContact((prev) => prev ? { ...prev, ...updates } : prev)}` -- identico ao padrao do desktop (L1163)
+- Confirma paridade completa entre desktop e mobile para propagacao imutavel de atualizacoes de contato
+
+**[FIX-3] [MEDIUM] AC4 - Permissao dupla liveChat/integrations: CORRIGIDO**
+
+- `ai-actions.ts` L5: importa `memberHasPermission` de `@/lib/auth/check-permission` -- usa funcao utilitaria existente do projeto em vez de acesso direto a array
+- `ai-actions.ts` L357-358: comentario claro -- `// AC4: Accept liveChat OR integrations (agents have liveChat, automations have integrations)`
+- `ai-actions.ts` L358: `const hasJourneyPermission = memberHasPermission(member, "liveChat") || memberHasPermission(member, "integrations")` -- aceita ambas permissoes conforme spec
+- `ai-actions.ts` L359-361: retorna erro 400 em vez de throw -- `if (!hasJourneyPermission) { return { success: false, error: "Sem permissao para alterar jornada" } }` -- padrao consistente com o retorno da server action (nao lanca excecao)
+
+### AC Traceability
+
+| AC | Resultado | Evidencia |
+|----|-----------|-----------|
+| AC1 - DELETE de notas funciona | PASS | `notes-route.ts` L113-162: handler DELETE exportado, extrai `noteId` de searchParams (L117), valida presenca (L119-124), busca nota com `prisma.internalNote.findUnique` (L127-130), retorna 404 se nao encontrada (L132-137), valida org com `requireOrgAccess` (L140), deleta com `db.internalNote.delete` (L154), retorna 200 (L156). Frontend em `contact-panel.tsx` L1265-1277 faz `fetch(..., { method: "DELETE" })` e remove do state com `setInternalNotes(prev => prev.filter(...))`. |
+| AC2 - Autorizacao no DELETE | PASS | `notes-route.ts` L129: select inclui `authorId`. L140: desestrutura `{ session, member }` de `requireOrgAccess`. L143: `isAuthor = session.user?.id === note.authorId`. L144: `isAdmin = member.role === "ADMIN"`. L145-150: retorna 403 com mensagem se nenhum dos dois. Cobre os cenarios: autor pode excluir propria nota, admin pode excluir qualquer nota, outros membros recebem 403. |
+| AC3 - Nome atualiza sem mutacao | PASS | `contact-panel.tsx` L179-183: callback `onNameUpdated` chama `onContactUpdate({ name: newName })` -- sem mutacao direta. `inbox-layout.tsx` L1163 (desktop): `onContactUpdate={(updates) => setContact(prev => prev ? { ...prev, ...updates } : prev)}` -- spread imutavel. `inbox-layout.tsx` L1060 (mobile): `onContactUpdate={(updates) => setContact((prev) => prev ? { ...prev, ...updates } : prev)}` -- identico ao desktop. Paridade desktop/mobile confirmada. |
+| AC4 - Journey acessivel por liveChat | PASS | `ai-actions.ts` L5: importa `memberHasPermission` de `@/lib/auth/check-permission`. L358: `memberHasPermission(member, "liveChat") \|\| memberHasPermission(member, "integrations")`. L359-361: retorna `{ success: false, error }` se nenhuma permissao. Usuarios com `liveChat` (agentes de inbox) e usuarios com `integrations` (automacoes/pipelines) podem alterar jornada. |
+| AC5 - Sem regressoes | PASS | Handlers POST (L6-70) e GET (L73-110) em `notes-route.ts` permanecem intactos. `ProfileHeader` continua funcional. Demais server actions em `ai-actions.ts` (`updateAIConfig`, `addKnowledgeBase`, etc.) continuam usando `assertMemberPermission(member, "integrations")` -- sem impacto colateral. Mobile e desktop tem paridade de props no `ContactPanel`. |
+
+### Compliance Check
+
+- Coding Standards: PASS -- Segue padrao do projeto (kebab-case, imports absolutos com `@/`, TypeScript)
+- Project Structure: PASS -- Arquivos nos locais corretos (api routes, components, server actions)
+- Security: PASS -- Autorizacao autor/admin implementada no DELETE, permissoes validadas via `memberHasPermission`
+- Testing Strategy: N/A -- Story define apenas testes manuais (aplicacao em servidor Vultr)
+- All ACs Met: PASS -- Todos os 5 ACs satisfeitos
+
+### Issues Found
+
+Nenhum issue pendente. Todos os 3 issues da review anterior foram resolvidos.
+
+### Security Review
+
+O endpoint DELETE de notas agora implementa controle de acesso correto em tres camadas: (1) autenticacao via `requireOrgAccess` que valida pertinencia a organizacao, (2) verificacao de autoria `session.user?.id === note.authorId`, (3) fallback para role admin `member.role === "ADMIN"`. Tentativas nao autorizadas retornam 403 com mensagem descritiva. A permissao de jornada usa `memberHasPermission` (funcao utilitaria do projeto) em vez de acesso direto a propriedades, o que e mais seguro e mantem consistencia.
+
+### Performance Considerations
+
+Nenhum problema de performance identificado. O handler DELETE faz uma query global para buscar a nota antes de deletar (necessario para validar org e autoria antes de criar o tenant client), seguido de delete com tenant client -- padrao correto.
+
+### Refactoring Performed
+
+Nenhum. QA nao modifica codigo fonte.
+
+### Files Modified During Review
+
+Nenhum arquivo de codigo modificado. Apenas a secao QA Results desta story foi atualizada.
+
+### Gate Status
+
+**Gate: APPROVED**
+
+- 0 issues CRITICAL
+- 0 issues MEDIUM
+- 5/5 ACs satisfeitos
+- 3/3 fixes da review anterior confirmados
+
+Quality Score: **100/100**
+
+### Recommended Status
+
+**APPROVED** -- Todos os acceptance criteria estao satisfeitos e todos os issues identificados na review anterior foram corrigidos com evidencia de codigo. A story esta pronta para teste manual no servidor Vultr e posterior deploy por @devops.

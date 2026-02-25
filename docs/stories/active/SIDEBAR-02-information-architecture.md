@@ -278,4 +278,67 @@ Claude Opus 4.6
 
 ## QA Results
 
-_A ser preenchido pelo agente de QA apos implementacao_
+### Review Date: 2026-02-25
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+
+Implementacao de alta qualidade. Todas as 5 ACs foram endereacadas corretamente. O codigo segue boas praticas de React (useMemo, useCallback, refs para focus), tratamento de erros consistente, e suporte a dark mode. A reorganizacao da arquitetura de informacao foi executada de forma limpa, sem romper funcionalidades existentes.
+
+### AC Traceability
+
+| AC | Resultado | Evidencia |
+|----|-----------|-----------|
+| AC1 - StatsBar posicao 2 | PASS | `contact-panel.tsx` linhas 174-188: ordem de renderizacao e ProfileHeader (L174) -> StatsBar (L187) -> ContactInfoCard (L190). Comentario `{/* 2. STATS BAR (moved up for visibility) */}` confirma intencao. |
+| AC2 - Telefone formatado | PASS | `contact-info-card.tsx` L35-44: `formatBrazilianPhone()` implementa corretamente — 13 digitos/DDI55 -> `+55 (XX) XXXXX-XXXX`, 12 digitos/DDI55 -> `+55 (XX) XXXX-XXXX`, fallback retorna raw. Exibicao usa formatado (L90, L114, L122). Clipboard copia raw: `handleCopy(contact.phone!, "phone")` (L111). Link wa.me usa raw: `contact.phone.replace(/\D/g, "")` em `contact-panel.tsx` L711. |
+| AC3 - Badge de status | PASS | `contact-panel.tsx` L536-561: `statusBadge` useMemo com 3 estados — OPEN+isBusy -> "Eli atendendo" violet com icone Bot (L538-544), OPEN/PENDING -> "Aberta" verde (L546-551), CLOSED -> "Fechada" secondary/cinza (L553-558). Todos com `aria-label` descritivo. |
+| AC4 - Layout horizontal | PASS | `contact-panel.tsx` L564: layout mudou para `flex items-start gap-3`. Avatar `h-10 w-10` (40px) em `shrink-0` (L566-575). Nome `text-base font-semibold` com badges empilhados a direita em `flex-1 min-w-0` (L578-641). |
+| AC5 - Sem regressoes | PASS | Edicao inline nome preservada: states `isEditingName`/`editName` (L468-470), input com ref+focus (L581-593), Enter salva/Esc cancela (L523-533). Badge "Assinante" (L632-635). LeadScoreBadge (L637-639). Toda logica funcional intacta. |
+
+### Compliance Check
+
+- Coding Standards: PASS — Componentes em PascalCase, funcoes auxiliares em camelCase, sem `any`, imports absolutos com `@/`
+- Project Structure: PASS — Arquivos nos diretorios corretos conforme source tree do projeto
+- Testing Strategy: N/A — Story e de inspecao visual (frontend puro, sem testes automatizados requeridos)
+- All ACs Met: PASS — 5/5 ACs implementadas com evidencia de codigo
+
+### Refactoring Performed
+
+Nenhum. Codigo QA-only review, sem modificacoes (arquivos no servidor remoto Vultr).
+
+### Improvements Checklist
+
+- [x] StatsBar reposicionado para posicao 2 (AC1)
+- [x] formatBrazilianPhone implementado e aplicado apenas para exibicao (AC2)
+- [x] Raw phone preservado para clipboard e wa.me links (AC2)
+- [x] Badge de status com 3 variantes + aria-label (AC3)
+- [x] Layout horizontal com avatar 40px (AC4)
+- [x] Edicao inline de nome preservada (AC5)
+- [x] Props conversationStatus e isAiHandling passadas corretamente do InboxLayout (desktop L1163-1164, mobile L1060-1061)
+- [ ] CONCERN MENOR: Badges "Aberta" e "Eli atendendo" usam cores utilitarias hardcoded (bg-green-100, bg-violet-100) ao inves de tokens semanticos do design system (--success, --ai-accent). Badge "Fechada" corretamente usa bg-secondary. Considerar unificar via tokens em story futura.
+- [ ] BONUS nao especificado: StatsBar agora tem cor semantica por tempo (verde <1h, amber 1-24h, vermelho >24h) — funcionalidade valida e nao-regressiva, porem nao constava nos ACs originais.
+
+### Security Review
+
+Sem preocupacoes. Nenhum dado sensivel exposto. Clipboard usa API nativa do navegador. Links wa.me abrem em nova aba com `noopener,noreferrer`.
+
+### Performance Considerations
+
+Sem preocupacoes. `statusBadge` usa `useMemo` para evitar re-renders desnecessarios. `lastMsgColor` no StatsBar tambem usa `useMemo`. Funcao `formatBrazilianPhone` e pura e leve (regex + slicing).
+
+### Files Modified During Review
+
+Nenhum arquivo modificado — review somente leitura.
+
+### Gate Status
+
+Gate: **PASS**
+
+Quality Score: 100 (0 FAILs, 0 CONCERNS bloqueantes)
+
+Nota: A concern sobre tokens de cor e menor e nao bloqueante. Recomendo endereca-la em uma story futura de padronizacao de design tokens.
+
+### Recommended Status
+
+PASS — Ready for Done. Todas as 5 ACs implementadas corretamente com evidencia de codigo verificada. Funcionalidades existentes preservadas sem regressoes.

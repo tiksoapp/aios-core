@@ -272,4 +272,89 @@ Claude Opus 4.6
 
 ## QA Results
 
-_A ser preenchido pelo agente de QA apos implementacao_
+### Review Date: 2026-02-25
+
+### Reviewed By: Quinn (Test Architect)
+
+### Gate Decision: CONCERNS
+
+---
+
+### Tabela de Rastreabilidade AC-para-Codigo
+
+| AC | Criterio | Veredito | Evidencia |
+|----|----------|---------|-----------|
+| AC1 | Batch de server actions (`getSidebarData`) | PARTIAL | `getContactActivityData` criada em `actions.ts` (linhas 1824-1903) buscando sequences, campaigns, pipelineCards, customFields com auth unica. Porem, `getSidebarData` batch completo **nao foi implementado** -- o dev documentou a decisao de adiar por ser "too invasive". A funcao `getContactDetails` (linhas 585-719) ainda inclui `sequenceEnrollments`, `campaignRecipients`, `pipelineCards`, `variableValues` na query principal. A reducao de chamadas de 6 para 1 **nao aconteceu**. |
+| AC2 | Lazy load da secao Atividade | PARTIAL | `SectionHeader` recebeu prop `onExpand` com guard `hasExpanded` (section-header.tsx linhas 25, 44-45, 89-97). Em `contact-panel.tsx` (linhas 298-314), o `onExpand` esta wired na secao "Atividade" mas o callback esta **vazio** (comentario "placeholder for future use"). O `getContactDetails` **nao foi refatorado** para excluir dados de atividade. Os dados ja vem no carregamento inicial. A infraestrutura de lazy load esta pronta, mas o AC pede que dados de atividade "so busca quando o usuario expande", o que nao acontece. |
+| AC3 | Tempo real para tags (Centrifugo ou re-fetch) | PASS | Nao existindo evento Centrifugo `contact:tag:changed`, o dev implementou fallback via `visibilitychange` em `inbox-layout.tsx` (linhas 477-487). Quando a aba reganha foco, `loadContact()` e chamada, rebuscando `getContactDetails` que inclui tags. Cleanup correto no return do useEffect. AUTO-DECISION documentada. |
+| AC4 | Tempo real para notas (re-fetch) | PASS | Mesmo mecanismo de `visibilitychange` cobre notas. O `loadContact()` rebusca dados completos do contato. AUTO-DECISION documentada. |
+| AC5 | ErrorBoundary em componentes Centrifugo | PASS | `ErrorBoundary` criado em `error-boundary.tsx` (linhas 1-40) como class component com `getDerivedStateFromError` e `componentDidCatch`. `ConversationInsight` envolvido em ErrorBoundary em `contact-panel.tsx` (linhas 276-278) com fallback customizado. Implementacao correta e funcional. |
+| AC6 | Sem regressoes de funcionalidade | PASS | Todas as mudancas sao **aditivas**: nova funcao `getContactActivityData` nao substitui nenhuma existente, `onExpand` e prop opcional em SectionHeader, `visibilitychange` e listener adicional, ErrorBoundary envolve sem alterar ConversationInsight. O `getContactDetails` original permanece intacto. |
+
+---
+
+### Code Quality Assessment
+
+A implementacao e conservadora e segura -- todas as mudancas sao aditivas, nao quebrando nenhuma funcionalidade existente. A qualidade do codigo e boa: ErrorBoundary segue padrao React correto, SectionHeader tem acessibilidade (aria-expanded, aria-controls), e o visibilitychange tem cleanup adequado.
+
+Porem, dois ACs centrais da story (AC1 e AC2) ficaram em estado **parcial**:
+
+1. **AC1** pediu `getSidebarData` unificando 4-6 chamadas em uma. O que foi entregue e `getContactActivityData` (uma funcao nova que busca apenas dados de atividade). A funcao esta correta e bem implementada, mas o objetivo do AC -- reducao de chamadas no carregamento do painel -- **nao foi atingido**. O `getContactDetails` continua fazendo query pesada com todos os includes.
+
+2. **AC2** pediu que dados de atividade "so busca quando o usuario expande". A infraestrutura (`onExpand` + `hasExpanded`) esta implementada corretamente no SectionHeader, mas o callback no contact-panel esta vazio. Os dados de atividade continuam vindo no carregamento inicial via `getContactDetails`.
+
+O dev documentou essas decisoes nos Completion Notes como deferimentos conscientes, o que demonstra transparencia. A questao e se isso atende os ACs como escritos.
+
+### Refactoring Performed
+
+Nenhum. QA Agent nao modifica codigo-fonte conforme restricoes de permissao.
+
+### Compliance Check
+
+- Coding Standards: PASS -- kebab-case nos arquivos, PascalCase nos componentes, imports absolutos (@/)
+- Project Structure: PASS -- componentes em locais corretos (ui/, inbox/, contacts/shared/)
+- Testing Strategy: N/A -- sem testes automatizados (story especifica teste manual via network tab)
+- All ACs Met: PARTIAL -- AC1 e AC2 parcialmente implementados (infraestrutura pronta, comportamento final ausente)
+
+### Improvements Checklist
+
+- [ ] **AC1**: Implementar `getSidebarData` batch real ou refatorar `getContactDetails` para excluir dados de atividade da query padrao, reduzindo efetivamente as queries no carregamento
+- [ ] **AC2**: Conectar o callback `onExpand` da secao Atividade para chamar `getContactActivityData` e renderizar os dados retornados, removendo sequences/campaigns/pipelineCards/variableValues do `getContactDetails`
+- [x] AC3: visibilitychange implementado com cleanup correto
+- [x] AC4: visibilitychange cobre notas via re-fetch do contato
+- [x] AC5: ErrorBoundary criado e aplicado no ConversationInsight
+- [x] AC6: Sem regressoes, mudancas 100% aditivas
+
+### Security Review
+
+Sem problemas de seguranca identificados. `getContactActivityData` usa `requireOrgAccess` para autenticacao (actions.ts linha 1829). ErrorBoundary usa `console.error` para logging (aceitavel em componente client).
+
+### Performance Considerations
+
+**Concern principal**: O objetivo de performance da story (reduzir queries de 6 para 1-2 por troca de conversa) **nao foi atingido**. O `getContactDetails` ainda faz query com 6 includes pesados (sequenceEnrollments, campaignRecipients, pipelineCards, variableValues, tags, leadScores). A funcao `getContactActivityData` existe mas nao e usada em nenhum fluxo de carregamento.
+
+O `visibilitychange` re-fetch e uma boa solucao de fallback, mas adiciona uma chamada extra quando o usuario volta para a aba -- impacto minimo e aceitavel.
+
+### Files Modified During Review
+
+Nenhum arquivo modificado pelo QA.
+
+### Gate Status
+
+Gate: **CONCERNS**
+
+Quality Score: 90 (100 - 10*CONCERNS)
+
+Motivo: AC1 e AC2 foram parcialmente implementados. A infraestrutura para lazy load esta pronta (SectionHeader.onExpand, getContactActivityData), mas o comportamento final especificado nos ACs nao esta ativo. A story entrega 4 de 6 ACs completamente (AC3, AC4, AC5, AC6) e 2 parcialmente (AC1, AC2). Nao ha problemas de seguranca nem regressoes.
+
+### Recommended Status
+
+NEEDS_WORK -- Duas opcoes para o PO/dev:
+
+**Opcao A (Recomendada)**: Aceitar a story como esta e criar uma story follow-up (ex: SIDEBAR-06b) para completar AC1 e AC2 com a refatoracao do `getContactDetails`. Justificativa: as mudancas sao seguras, a infraestrutura esta pronta, e a refatoracao do data flow e invasiva e merece story dedicada.
+
+**Opcao B**: Completar AC1/AC2 nesta story -- conectar `getContactActivityData` ao `onExpand` e remover dados de atividade do `getContactDetails`.
+
+O PO decide o caminho.
+
+-- Quinn, guardiao da qualidade
