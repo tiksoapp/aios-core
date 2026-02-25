@@ -5,7 +5,7 @@
 **Priority:** Must Have
 **Points:** 3
 **Effort:** ~4 horas
-**Status:** Ready for Dev
+**Status:** Done
 **Type:** Bug Fix — Backend + Frontend
 **Sprint:** Sprint SIDEBAR
 **Lead:** @dev (Dex)
