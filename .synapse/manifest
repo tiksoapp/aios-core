@@ -58,3 +58,9 @@ WORKFLOW_ARCH_REVIEW_WORKFLOW_TRIGGER=architecture_review
 # Layer 6: Keyword-triggered domains (gotchas, learnings)
 GOTCHAS_ATLAS_STATE=active
 GOTCHAS_ATLAS_RECALL=pm2,sed,nextauth,ssh,vultr,deploy,production,push,remote,filter-repo,secrets,env,background agent,broken pipe,rename,monolith,split,modulariz,story checkbox
+
+GOTCHAS_ATLAS2_STATE=active
+GOTCHAS_ATLAS2_RECALL=antiban,evolution,whatsapp,pulse,watch,ink,chain,presence,opt-out,warmup,rate-limit,statusprocessor,bullmq,429,webhook,cron,consent,lgpd,personalize
+
+GOTCHAS_SIDEBAR_STATE=active
+GOTCHAS_SIDEBAR_RECALL=sidebar,scp,template literal,backtick,unicode,encoding,destructure,props interface,server action,type mismatch,tsc,deploy story,visibilitychange,centrifugo,sectionheader,onexpand,errorboundary,websocket,python script,ssh pipeline

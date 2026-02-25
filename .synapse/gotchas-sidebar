@@ -1,0 +1,25 @@
+# SYNAPSE Gotchas Domain — SIDEBAR Sprint Learnings
+# Source: Epic SIDEBAR retrospective (2026-02-25)
+# Triggered by L6 keywords: sidebar, ssh, scp, template literal, python, unicode, destructure, props, server action, deploy, visibilitychange, centrifugo, sectionheader, errorboundary, websocket
+
+# --- CRITICAL ---
+
+GOTCHA_RULE_0=[CRITICAL] Template literals JS (backticks, ${}) corrompem quando passados via Python -> bash -> SSH pipeline. O shell interpreta backticks como command substitution e ${} como variavel. SEMPRE escrever Python scripts localmente, scp para o servidor, executar remotamente. Nunca passar codigo JS inline via SSH.
+
+GOTCHA_RULE_1=[CRITICAL] Python str.replace() com caracteres acentuados (U, a, e com acentos) falha silenciosamente se o encoding nao bater. Usar unicode escapes (\u00da para U, \u00e3 para a til, \u00e9 para e agudo) nos scripts Python que manipulam strings TypeScript/JS. Nunca assumir que o terminal SSH mantem UTF-8.
+
+GOTCHA_RULE_2=[CRITICAL] Ao adicionar props a interface TypeScript, SEMPRE adicionar tambem na destructuring do componente. Script Python pode alterar a interface mas esquecer os params na funcao. Validar com tsc --noEmit apos cada script que altera interfaces.
+
+# --- WARNING ---
+
+GOTCHA_RULE_3=[WARNING] Ao passar novos campos para server actions (ex: email em updateContact), verificar o tipo do parametro `data`. Se a action espera Partial<Contact> mas o formulario envia campos extras, TypeScript so mostra o erro no `tsc --noEmit`, nao no runtime. Sempre rodar typecheck apos adicionar campos.
+
+GOTCHA_RULE_4=[WARNING] Deploy story-by-story (nao batch) eh mais seguro em servidores de producao. Cada story deve seguir: script Python -> scp -> tsc --noEmit -> npx next build -> PM2 restart. Rollback eh mais facil quando cada story eh um passo atomico. Se o build falhar, so a ultima story precisa ser revertida.
+
+GOTCHA_RULE_5=[WARNING] Quando Centrifugo (ou outro WebSocket) nao tem eventos necessarios para um caso de uso, usar `document.addEventListener('visibilitychange')` como fallback para re-fetch de dados quando o usuario retorna a aba. Nao depender exclusivamente de real-time push para dados criticos de UI.
+
+# --- INFO ---
+
+GOTCHA_RULE_6=[INFO] SectionHeader com callback `onExpand` precisa de flag `hasExpanded` (useRef ou state) para nao disparar o callback em toda abertura/fechamento. O callback deve executar apenas na PRIMEIRA expansao (lazy load), nao em toggles subsequentes.
+
+GOTCHA_RULE_7=[INFO] Componentes com WebSocket subscriptions (Centrifugo, Pusher, etc.) devem SEMPRE ser wrappados em ErrorBoundary para evitar que falha de conexao quebre o painel inteiro. Sem ErrorBoundary, um erro de WebSocket faz unmount de toda a arvore React acima do throw.
